@@ -177,12 +177,14 @@
     return out.join('\n').trim() + '\n';
   }
   // ChatGPT／Gemini／通用：直接貼進對話就能「註冊」一個有名稱、可用指令叫出的技能
-  function skillCmd(sk) { return '/' + slug(sk.name); }
+  // 技能名稱與呼叫指令都套用「name 前綴」設定（例如 user:social-post → /user:social-post）
+  function skillName(sk) { return state.settings.prefix + slug(sk.name); }
+  function skillCmd(sk) { return '/' + skillName(sk); }
   function namedSkill(sk, opt) {
     var d = state.settings.detail, cmd = skillCmd(sk), zh = sk.zh || sk.title || slug(sk.name), out = [];
     out.push('# 技能：' + cmd + '（' + zh + '）', opt.intro, '',
       '## 技能資訊',
-      '- 技能名稱：' + slug(sk.name),
+      '- 技能名稱：' + skillName(sk),
       '- 中文名稱：' + zh,
       '- 呼叫方式：輸入「' + cmd + '」或「使用' + zh + '」，後面接上內容或附上圖片',
       '- 用途：' + sk.desc, '',

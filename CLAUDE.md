@@ -1,6 +1,6 @@
 # CLAUDE.md — skill-prompt-studio（AI 技能提示詞工坊）
 
-輸入一段文字或圖片 → 產出可直接建立技能的提示詞：SKILL.md（Claude／通用，`name: user:xxx` 格式），以及 ChatGPT／Gemini／通用 AI 三種「直接貼進對話就註冊成技能」的格式（`namedSkill()`：技能名稱、`/名稱` 呼叫指令、呼叫規則、「已記住技能」確認回覆，最後附改建 GPT／Gem 的填法）。另有「🔍 逆向工程」分頁：貼上／上傳圖片（或貼文字）→ AI 反推生圖（或寫作）提示詞，可在框內修改、一鍵複製。無框架、無建置、無序號授權。2026-10-29 建立。
+輸入一段文字或圖片 → 產出可直接建立技能的提示詞：SKILL.md（Claude／通用，`name: user:xxx` 格式），以及 ChatGPT／Gemini／通用 AI 三種「直接貼進對話就註冊成技能」的格式（`namedSkill()`：技能名稱、`/前綴+名稱`（如 `/user:social-post`，依 name 前綴設定）呼叫指令、呼叫規則、「已記住技能」確認回覆，最後附改建 GPT／Gem 的填法）。另有「🔍 逆向工程」分頁：貼上／上傳圖片（或貼文字）→ AI 反推生圖（或寫作）提示詞，可在框內修改、一鍵複製。無框架、無建置、無序號授權。2026-10-29 建立。
 
 ## 檔案
 - `data.js`：`window.SPS`。`CATEGORIES` 15 種技能類型（kw 關鍵字、desc、overview、inputs、steps、output、rules、starters、example；步驟中的 `{tones}` 會展開成偵測到的平台語氣子項）、`PLATFORM_TONES`（IG／FB／LINE／小紅書／LinkedIn／YouTube／TikTok）、`EXAMPLES` 12 個技能範例、`REV_EXAMPLES` 5 個逆向工程範例（3 張自繪 SVG `examples/*.svg`＋2 段文字，附預先寫好的解析結果，免金鑰可看）、`TONES`／`LANGS`／`DETAILS`。
