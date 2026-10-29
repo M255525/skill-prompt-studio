@@ -20,6 +20,7 @@
 - ✅ 頂部跑馬燈（共用 Apps Script 端點、滑鼠移入暫停）＋ ⚙ 常用設定（底部「關於本工具」集中入口）
 - ✅ RWD：≤980px 單欄且 `.col{display:contents}`＋`order` 讓輸出區排在微調前；375px 無橫向捲動；亮／暗色
 - ❌ 序號授權
+- ✅ GitHub Pages（2026-10-29 上線）：公開 repo <https://github.com/M255525/skill-prompt-studio>，網址 <https://m255525.github.io/skill-prompt-studio/>，`master`＋`.github/workflows/deploy-pages.yml`；程式牆與 github-dashboard 的 REPO_META 已登記
 
 ## 注意
 - 逆向工程範例圖必須是自繪或可授權素材，不可放他人作品；AI 反推提示詞要求不指認真人身分、不寫在世藝術家名字。
