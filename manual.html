@@ -87,10 +87,11 @@ description: 根據上傳的產品圖片或主題，自動生成符合指定社�
 <table>
 <tr><th>分頁</th><th>格式</th><th>貼到哪裡</th></tr>
 <tr><td>SKILL.md（Claude／通用）</td><td>YAML 開頭（name、description）＋ Markdown</td><td>按「⬇ 下載 Claude 技能 ZIP」，到 claude.ai「設定 → 功能 → 技能」上傳；Claude Code 放到 <code>~/.claude/skills/名稱/SKILL.md</code>。ChatGPT、Gemini 也可以整段貼到指示欄位。</td></tr>
-<tr><td>ChatGPT 自訂 GPT</td><td>名稱／說明／指示／對話啟動器</td><td>ChatGPT「探索 GPT → 建立 → 設定」各欄位；或「專案 → 指示」。</td></tr>
-<tr><td>Gemini Gem</td><td>角色、任務、背景、步驟、格式、限制</td><td>Gemini「Gem 管理工具 → 新增 Gem」的「指示」欄位。</td></tr>
-<tr><td>通用系統提示詞</td><td>一段完整的系統指令</td><td>Copilot、Grok、DeepSeek、Perplexity 的自訂指令，或直接當對話第一句送出。</td></tr>
+<tr><td>ChatGPT 技能</td><td>有技能名稱與呼叫指令（例如 <code>/social-post</code>）的技能註冊文，含呼叫規則</td><td><b>直接整段貼進 ChatGPT 對話</b>（需開啟記憶），回覆「已記住技能」後，在任何對話輸入 <code>/social-post</code> 加內容就能叫出；最後附「改建成自訂 GPT」的填法。</td></tr>
+<tr><td>Gemini 技能</td><td>同上</td><td><b>直接整段貼進 Gemini 對話</b>，存到「已儲存的資訊」後用 <code>/技能名稱</code> 叫出；最後附「建立成 Gem」的填法。</td></tr>
+<tr><td>通用 AI 技能</td><td>同上</td><td>Copilot、Grok、DeepSeek、Perplexity 等：貼成對話第一則訊息，同一個對話內用 <code>/技能名稱</code> 叫出；沒有長期記憶的 AI 換新對話要重貼，或貼到自訂指令欄位。</td></tr>
 </table>
+<p>輸入 <code>/skills</code> 可以請 AI 列出它記住的所有技能。<b>注意：</b>ChatGPT、Gemini 的記憶有時只存摘要，步驟多的技能可能執行得不完整；要長期穩定使用，建議照輸出最後一段建成自訂 GPT／Gem，或貼到「專案」的指示。</p>
 <p>name 前綴：選「user:」會輸出 <code>name: user:social-post</code>；Claude 官方規格的 name 只允許英文小寫、數字與連字號，若上傳 Claude 時出現格式錯誤，請改選「無前綴」。各平台介面名稱可能隨改版調整。</p>
 </section>
 

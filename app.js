@@ -19,9 +19,9 @@
 
   var PLATFORMS = [
     { id: 'claude', label: 'SKILL.md（Claude／通用）', tip: '標準技能檔格式。<b>Claude</b>：按「下載 Claude 技能 ZIP」，到 claude.ai「設定 → 功能 → 技能」上傳；Claude Code 則放到 <code>~/.claude/skills/名稱/SKILL.md</code>。<b>ChatGPT／Gemini</b> 也可以整段貼到 GPT／Gem 或專案的「指示」欄位。' },
-    { id: 'chatgpt', label: 'ChatGPT 自訂 GPT', tip: 'ChatGPT →「探索 GPT」→「建立」→「設定」：名稱、說明、指示、對話啟動器分別貼到對應欄位（也可整段貼到「專案 → 指示」）。' },
-    { id: 'gemini', label: 'Gemini Gem', tip: 'Gemini →「Gem 管理工具」→「新增 Gem」：名稱貼到名稱欄，【指示】以下整段貼到「指示」欄位。' },
-    { id: 'generic', label: '通用系統提示詞', tip: '適用 Copilot、Grok、DeepSeek、Perplexity、Claude 專案等：貼到「自訂指令／系統提示詞」，或直接當對話第一句送出。' }
+    { id: 'chatgpt', label: 'ChatGPT 技能', tip: '<b>直接整段貼進 ChatGPT 對話</b>（需開啟「設定 → 個人化 → 記憶」），它回覆「已記住技能」後，之後在任何對話輸入 <code>/技能名稱</code> 加內容就能叫出。記憶有時只存摘要，若要長期穩定使用，建議照最後一段改建成自訂 GPT 或貼到「專案 → 指示」。' },
+    { id: 'gemini', label: 'Gemini 技能', tip: '<b>直接整段貼進 Gemini 對話</b>，它會存到「已儲存的資訊」，之後輸入 <code>/技能名稱</code> 加內容就能叫出（需帳號開啟此功能）。若要長期穩定使用，建議照最後一段建立成 Gem。' },
+    { id: 'generic', label: '通用 AI 技能', tip: '適用 Copilot、Grok、DeepSeek、Perplexity 等：<b>貼成對話第一則訊息</b>，同一個對話內輸入 <code>/技能名稱</code> 即可叫出；沒有長期記憶的 AI，換新對話要重新貼一次，或貼到「自訂指令／系統提示詞」欄位。' }
   ];
   var REV_FMTS = {
     image: [
@@ -176,40 +176,41 @@
     if (d === 'full' && sk.example.trim()) out.push('## ' + H.ex, sk.example.trim(), '');
     return out.join('\n').trim() + '\n';
   }
-  function buildChatGPT(sk) {
-    var d = state.settings.detail, out = [];
-    out.push('【GPT 名稱】' + sk.zh, '【說明】' + sk.desc, '', '【指示】（以下貼到「設定 → 指示」）', '# 角色', '你是「' + sk.zh + '」。' + (sk.overview || ''), '');
-    if (d === 'full' && sk.inputs.length) out.push('# 使用者會提供', bullets(sk.inputs), '');
-    out.push('# 工作流程', stepsMd(sk.steps), '');
-    if (d !== 'lite' && sk.output.length) out.push('# 輸出格式', bullets(sk.output), '');
-    var rules = d === 'lite' ? extraRules() : allRules(sk);
-    out.push('# 注意事項', bullets(rules.concat(['使用者提供的資訊不足時，先用 1～3 個問題確認，再開始產出'])), '');
-    if (d === 'full' && sk.example.trim()) out.push('# 範例', sk.example.trim(), '');
-    if (sk.starters.length) out.push('【對話啟動器】', bullets(sk.starters));
+  // ChatGPT／Gemini／通用：直接貼進對話就能「註冊」一個有名稱、可用指令叫出的技能
+  function skillCmd(sk) { return '/' + slug(sk.name); }
+  function namedSkill(sk, opt) {
+    var d = state.settings.detail, cmd = skillCmd(sk), zh = sk.zh || sk.title || slug(sk.name), out = [];
+    out.push('# 技能：' + cmd + '（' + zh + '）', opt.intro, '',
+      '## 技能資訊',
+      '- 技能名稱：' + slug(sk.name),
+      '- 中文名稱：' + zh,
+      '- 呼叫方式：輸入「' + cmd + '」或「使用' + zh + '」，後面接上內容或附上圖片',
+      '- 用途：' + sk.desc, '',
+      '## 角色', '你是「' + zh + '」。' + (sk.overview || ''), '');
+    if (d === 'full' && sk.inputs.length) out.push('## 使用者會提供', bullets(sk.inputs), '');
+    out.push('## 執行步驟', stepsMd(sk.steps), '');
+    if (d !== 'lite' && sk.output.length) out.push('## 輸出格式', bullets(sk.output), '');
+    out.push('## 注意事項', bullets((d === 'lite' ? extraRules() : allRules(sk)).concat(['使用者提供的資訊不足時，先用 1～3 個問題確認，再開始產出'])), '');
+    if (d === 'full' && sk.example.trim()) out.push('## 範例', sk.example.trim(), '');
+    out.push('## 呼叫規則',
+      '- 當我輸入「' + cmd + '」、「使用' + zh + '」，或需求明顯符合上面的用途時，就啟用這個技能並依照上面的步驟執行',
+      '- 啟用時先回覆一行「✅ 已啟用技能：' + zh + '（' + cmd + '）」，再開始處理',
+      '- 我只輸入「' + cmd + '」沒有附內容時，請說明需要我提供哪些資料' + (sk.starters.length ? '，並舉例：' + sk.starters.slice(0, 3).map(function (s) { return '「' + s + '」'; }).join('、') : ''),
+      '- 我輸入「/skills」時，列出你目前記住的所有技能名稱與呼叫方式', '',
+      '收到這段內容後先不要執行，請只回覆：「已' + opt.saved + '技能 ' + cmd + '（' + zh + '），輸入 ' + cmd + ' 加上內容即可使用。」');
+    if (opt.setup) out.push('', opt.setup);
     return out.join('\n').trim() + '\n';
+  }
+  function buildChatGPT(sk) {
+    return namedSkill(sk, { saved: '記住', intro: '請把以下內容儲存到你的記憶，作為一個可以在之後任何對話中用名稱呼叫的技能。',
+      setup: '---\n（選用）改建成「自訂 GPT」：名稱填「' + (sk.zh || sk.title) + '」、說明填「' + sk.desc + '」，把上面「## 技能資訊」到「## 呼叫規則」的內容貼到「指示」欄位' + (sk.starters.length ? '；對話啟動器：' + sk.starters.join('／') : '') + '。' });
   }
   function buildGemini(sk) {
-    var d = state.settings.detail, out = [];
-    out.push('【Gem 名稱】' + sk.zh, '【說明】' + sk.desc, '', '【指示】（以下貼到 Gem 的「指示」欄位）', '## 角色（Persona）', '你是「' + sk.zh + '」。' + (sk.overview || ''), '',
-      '## 任務（Task）', sk.desc, '');
-    if (d !== 'lite' && sk.inputs.length) out.push('## 背景與輸入（Context）', '使用者會提供：', bullets(sk.inputs), '');
-    out.push('## 執行步驟', stepsMd(sk.steps), '');
-    if (d !== 'lite' && sk.output.length) out.push('## 輸出格式（Format）', bullets(sk.output), '');
-    out.push('## 限制', bullets(d === 'lite' ? extraRules() : allRules(sk)), '');
-    if (d === 'full' && sk.example.trim()) out.push('## 範例', sk.example.trim(), '');
-    if (sk.starters.length && d === 'full') out.push('【可以這樣開始】', bullets(sk.starters));
-    return out.join('\n').trim() + '\n';
+    return namedSkill(sk, { saved: '儲存', intro: '請把以下內容記住並存到「已儲存的資訊」，作為一個可以在之後任何對話中用名稱呼叫的技能。',
+      setup: '---\n（選用）改建成「Gem」：名稱填「' + (sk.zh || sk.title) + '」，把上面「## 技能資訊」到「## 呼叫規則」的內容貼到 Gem 的「指示」欄位，之後從側邊欄點選該 Gem 使用。' });
   }
   function buildGeneric(sk) {
-    var d = state.settings.detail, out = [];
-    out.push('你是一個專門負責「' + sk.zh + '」的 AI 助理。' + (sk.overview || ''), '', '【任務】' + sk.desc, '');
-    if (d === 'full' && sk.inputs.length) out.push('【我會提供】', bullets(sk.inputs), '');
-    out.push('【執行步驟】', stepsMd(sk.steps), '');
-    if (d !== 'lite' && sk.output.length) out.push('【輸出格式】', bullets(sk.output), '');
-    out.push('【規則】', bullets(d === 'lite' ? extraRules() : allRules(sk)), '');
-    if (d === 'full' && sk.example.trim()) out.push('【範例】', sk.example.trim(), '');
-    out.push('準備好後，請用一句話向我打招呼，並詢問需要處理的內容。');
-    return out.join('\n').trim() + '\n';
+    return namedSkill(sk, { saved: '記住', intro: '請在這次對話中記住以下技能（如果你有長期記憶功能，也請存進記憶），之後用名稱呼叫時就照它執行。' });
   }
   var BUILDERS = { claude: buildClaude, chatgpt: buildChatGPT, gemini: buildGemini, generic: buildGeneric };
   function buildPrompt(pid) { return state.skill ? BUILDERS[pid || state.platform](state.skill) : ''; }
