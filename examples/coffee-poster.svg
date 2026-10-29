@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1200" viewBox="0 0 900 1200">
+<rect width="900" height="1200" fill="#f1e6d3"/>
+<circle cx="450" cy="560" r="300" fill="#e4cfae"/>
+<g fill="none" stroke="#3b2a1e" stroke-width="10" stroke-linecap="round">
+<path d="M300 520 h300 v120 a150 150 0 0 1 -300 0z" fill="#fffaf2"/>
+<path d="M600 560 a55 55 0 0 1 0 110"/>
+<path d="M260 790 h380"/>
+<path d="M380 470 q-30 -45 0 -90 q30 -45 0 -90" stroke="#a0704a"/>
+<path d="M450 450 q-30 -45 0 -90 q30 -45 0 -90" stroke="#a0704a"/>
+<path d="M520 470 q-30 -45 0 -90 q30 -45 0 -90" stroke="#a0704a"/>
+</g>
+<ellipse cx="450" cy="540" rx="130" ry="16" fill="#6b4226"/>
+<text x="450" y="960" text-anchor="middle" font-family="Georgia, serif" font-size="92" font-weight="700" fill="#3b2a1e" letter-spacing="8">MORNING</text>
+<text x="450" y="1050" text-anchor="middle" font-family="Georgia, serif" font-size="92" font-weight="700" fill="#c0612b" letter-spacing="8">BREW</text>
+<text x="450" y="1120" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" fill="#3b2a1e" letter-spacing="10">SINCE 2026 · HAND DRIP</text>
+</svg>

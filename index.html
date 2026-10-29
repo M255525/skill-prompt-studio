@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI 技能提示詞工坊</title>
+<meta name="description" content="輸入一段文字或圖片，產出可直接貼到 ChatGPT、Gemini、Claude 等 AI 建立技能（Skill／GPT／Gem）的提示詞；另有逆向工程分頁，從圖片或文字反推提示詞。">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#5b4bdb">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f2fb; --bg2:#ebe7fa; --card:#ffffff; --ink:#1d1a2e; --ink2:#55516a; --line:#d9d4ee; --strong:#2b2550;
+  --accent:#5b4bdb; --accent-ink:#ffffff; --accent2:#f0a020; --ok:#1f8a5b; --warn:#c2410c; --field:#fbfaff; --code:#f6f4ff;
+  --mq:0px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#13111c; --bg2:#1d1a2b; --card:#1b1828; --ink:#eeeaf9; --ink2:#aaa4c2; --line:#353049; --strong:#d8d2f5;
+    --accent:#8b7dff; --accent-ink:#13111c; --accent2:#ffb84d; --ok:#4ade80; --warn:#fb923c; --field:#16141f; --code:#211d33;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#13111c; --bg2:#1d1a2b; --card:#1b1828; --ink:#eeeaf9; --ink2:#aaa4c2; --line:#353049; --strong:#d8d2f5;
+  --accent:#8b7dff; --accent-ink:#13111c; --accent2:#ffb84d; --ok:#4ade80; --warn:#fb923c; --field:#16141f; --code:#211d33;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:"Noto Sans TC",system-ui,sans-serif;color:var(--ink);background:var(--bg);line-height:1.6;padding-top:var(--mq)}
+body.has-marquee{--mq:30px}
+a{color:var(--accent)}
+#marqueeBar{position:fixed;top:0;left:0;right:0;height:30px;background:var(--strong);color:var(--bg);z-index:1500;overflow:hidden;display:none;align-items:center;font-size:13px;font-weight:700}
+#marqueeBar.show{display:flex}
+#marqueeTrack{display:inline-block;white-space:nowrap;padding-left:100%;animation:marquee 30s linear infinite}
+#marqueeBar:hover #marqueeTrack{animation-play-state:paused}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+header.top{max-width:1320px;margin:0 auto;padding:18px 16px 6px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:12px;min-width:0}
+.logo .badge{width:50px;height:50px;border-radius:14px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-size:26px;flex:none;box-shadow:0 6px 18px rgba(91,75,219,.35)}
+.logo h1{margin:0;font-size:clamp(20px,3.2vw,27px);font-weight:900;letter-spacing:.02em}
+.logo p{margin:0;color:var(--ink2);font-size:13.5px}
+.tools{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.tbtn{font:inherit;font-weight:700;font-size:14px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:7px 12px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:4px}
+.tbtn:hover{border-color:var(--accent);color:var(--accent)}
+
+.warnbar{max-width:1320px;margin:4px auto 0;padding:0 16px}
+.warnbar div{border:1.5px dashed var(--accent2);border-radius:10px;padding:7px 12px;font-size:13px;color:var(--ink2);background:var(--card)}
+.warnbar b{color:var(--warn)}
+.linkbtn{font:inherit;background:none;border:0;color:var(--accent);text-decoration:underline;cursor:pointer;padding:0}
+
+.maintabs{max-width:1320px;margin:12px auto 0;padding:0 16px;display:flex;gap:8px;flex-wrap:wrap}
+.mtab{font:inherit;font-weight:900;font-size:15px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:9px 16px;cursor:pointer}
+.mtab.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.mtab small{font-weight:500;font-size:12px;opacity:.85;margin-left:4px}
+
+main{max-width:1320px;margin:0 auto;padding:12px 16px 24px;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:18px;align-items:start}
+main[hidden]{display:none}
+.col{display:flex;flex-direction:column;gap:18px;min-width:0}
+.card{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:16px;min-width:0;box-shadow:0 2px 10px rgba(30,20,80,.05)}
+.card h2{margin:0 0 10px;font-size:17.5px;font-weight:900;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.card h2 .step{background:var(--accent);color:var(--accent-ink);border-radius:999px;width:27px;height:27px;display:inline-grid;place-items:center;font-size:14px;flex:none}
+.card h2 .aside{margin-left:auto;font-size:12.5px;font-weight:500;color:var(--ink2)}
+.hint{font-size:13px;color:var(--ink2);margin:0 0 8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.chip{font:inherit;font-size:13px;font-weight:700;border:1.5px solid var(--line);background:var(--bg2);color:var(--ink);border-radius:999px;padding:3px 11px;cursor:pointer}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+textarea,input[type=text],input[type=password],select{font:inherit;font-size:14px;color:var(--ink);background:var(--field);border:1.5px solid var(--line);border-radius:9px;padding:7px 9px;width:100%;min-width:0}
+textarea:focus,input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(91,75,219,.2)}
+textarea{resize:vertical;line-height:1.65}
+#srcText{min-height:130px}
+#revText{min-height:110px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.btn{font:inherit;font-weight:900;font-size:14.5px;border:1.5px solid var(--line);border-radius:11px;padding:8px 14px;cursor:pointer;background:var(--card);color:var(--ink)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.amber{background:var(--accent2);color:#1d1a2e;border-color:var(--accent2)}
+.btn:hover{filter:brightness(1.05)}
+.btn:disabled{opacity:.5;cursor:wait}
+.btn.ghost{font-weight:700;font-size:13.5px;padding:6px 11px}
+.status{font-size:12.5px;color:var(--ink2);flex-basis:100%}
+.status.ok{color:var(--ok)} .status.bad{color:var(--warn)}
+
+.drop{border:2px dashed var(--line);border-radius:12px;padding:12px;text-align:center;color:var(--ink2);font-size:13.5px;cursor:pointer;background:var(--bg2);margin-top:10px}
+.drop.over{border-color:var(--accent);color:var(--accent)}
+.drop b{color:var(--ink)}
+.thumbs{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.thumb{position:relative;width:84px;height:84px;border-radius:10px;overflow:hidden;border:1.5px solid var(--line);background:var(--bg2)}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb button{position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;border:0;background:rgba(0,0,0,.65);color:#fff;cursor:pointer;font-size:12px;line-height:1}
+.thumb.big{width:100%;height:auto;max-height:340px}
+.thumb.big img{object-fit:contain;max-height:340px}
+
+.opts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.fld{display:flex;flex-direction:column;gap:3px;min-width:0}
+.fld>span{font-size:12.5px;font-weight:700;color:var(--ink2)}
+.fld.wide{grid-column:1/-1}
+.fld.half{grid-column:span 2}
+
+.tabs{display:flex;gap:4px;border-bottom:2px solid var(--line);margin-bottom:10px;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin}
+.tab{font:inherit;font-weight:900;font-size:14px;border:0;border-bottom:3px solid transparent;margin-bottom:-2px;background:none;color:var(--ink2);padding:7px 12px;cursor:pointer;white-space:nowrap}
+.tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+.ptip{font-size:13px;color:var(--ink2);background:var(--bg2);border-left:4px solid var(--accent);padding:7px 10px;border-radius:0 8px 8px 0;margin:0 0 10px}
+.out{width:100%;font-family:ui-monospace,Consolas,"Noto Sans TC",monospace;font-size:13.5px;line-height:1.65;background:var(--code);border:1.5px solid var(--line);border-radius:10px;padding:12px;min-height:360px}
+.edited{font-size:12px;font-weight:700;color:var(--accent2)}
+.srcbadge{font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--bg2);color:var(--ink2)}
+.elgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.elgrid textarea{min-height:46px;font-size:13px;padding:5px 7px}
+
+footer{max-width:1320px;margin:0 auto;padding:6px 16px 30px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;font-size:12.5px;color:var(--ink2)}
+
+.modal{position:fixed;inset:0;background:rgba(10,8,20,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:2000}
+.modal.show{display:flex}
+.modal .mcard{background:var(--card);color:var(--ink);border:1.5px solid var(--line);border-radius:16px;width:min(640px,100%);max-height:calc(100vh - 32px);overflow:auto;padding:18px}
+.modal h2{margin:0 0 8px;font-size:19px;font-weight:900;display:flex;align-items:center;gap:8px}
+.xbtn{margin-left:auto;font:inherit;border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;width:32px;height:32px;cursor:pointer;font-weight:900}
+.sect{font-weight:900;margin:14px 0 6px;font-size:15px}
+.sub{margin:0 0 6px;color:var(--ink2);font-size:13.5px}
+.warn{margin:0;padding-left:20px;font-size:13.5px;line-height:1.7;color:var(--ink2)}
+.warn li{margin-bottom:4px}
+.creator-box{margin-top:12px;border:1.5px solid var(--line);border-radius:12px;padding:10px 14px;font-size:13.5px;line-height:1.7;color:var(--ink2);background:var(--bg2)}
+.sfoot{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:14px}
+.sgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.note{font-size:12.5px;color:var(--ink2)}
+.about-links{display:flex;flex-wrap:wrap;gap:8px}
+.mini{font:inherit;font-size:12.5px;font-weight:700;border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:4px 8px;cursor:pointer;white-space:nowrap;text-decoration:none}
+.mini:hover{border-color:var(--accent);color:var(--accent)}
+.hlist{list-style:none;padding:0;margin:0}
+.hlist li{display:flex;gap:8px;align-items:center;margin-bottom:6px}
+.hist-item{flex:1;text-align:left;font:inherit;border:1.5px solid var(--line);background:var(--bg2);color:var(--ink);border-radius:10px;padding:7px 10px;cursor:pointer;display:flex;flex-direction:column;min-width:0}
+.hist-item:hover{border-color:var(--accent)}
+.hist-item small{color:var(--ink2);font-size:12px}
+.empty{color:var(--ink2);font-size:13.5px}
+
+#toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,30px);background:var(--strong);color:var(--bg);padding:9px 16px;border-radius:10px;font-weight:700;font-size:14px;opacity:0;pointer-events:none;transition:.25s;z-index:2500;max-width:calc(100% - 32px)}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:980px){
+  main{grid-template-columns:minmax(0,1fr)}
+  /* 單欄時讓輸出區排在微調／細項前面 */
+  main .col{display:contents}
+  section[aria-labelledby="hs4"],#revElCard{order:1}
+}
+@media (max-width:560px){
+  .opts{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .sgrid,.elgrid{grid-template-columns:minmax(0,1fr)}
+  .tools .tx{display:none}
+  .card{padding:12px}
+  .out{min-height:300px}
+}
+@media (prefers-reduced-motion: reduce){ #marqueeTrack{animation:none} #toast{transition:none} }
+</style>
+</head>
+<body>
+<div id="marqueeBar"><div id="marqueeTrack"></div></div>
+
+<header class="top">
+  <div class="logo">
+    <div class="badge" aria-hidden="true">🧩</div>
+    <div>
+      <h1>AI 技能提示詞工坊</h1>
+      <p>輸入文字或圖片 → 產出可直接建立 Skill／GPT／Gem 的提示詞；也能從圖片反推提示詞</p>
+    </div>
+  </div>
+  <nav class="tools" aria-label="工具列">
+    <a class="tbtn" href="manual.html" target="_blank" rel="noopener">📖<span class="tx"> 操作手冊</span></a>
+    <button class="tbtn" id="aboutBtn" type="button" aria-haspopup="dialog">ℹ<span class="tx"> 關於</span></button>
+    <button class="tbtn" id="settingsBtn" type="button" aria-haspopup="dialog">⚙<span class="tx"> 常用設定</span></button>
+    <button class="tbtn" id="installBtn" type="button">📲<span class="tx"> 安裝</span></button>
+  </nav>
+</header>
+
+<div class="warnbar"><div><b>⚠ 使用警語：</b>產出的提示詞僅供參考，實際效果依各 AI 平台而異，請自行測試修改；使用 AI 功能時內容與圖片會送到你自備金鑰的服務商，請勿上傳機密、個資或他人有版權的圖片做商業用途。<button class="linkbtn" type="button" data-open-about>完整警語</button></div></div>
+
+<div class="maintabs" role="tablist" aria-label="功能分頁">
+  <button type="button" class="mtab on" role="tab" data-main="skill" aria-selected="true">🧩 技能產生器<small>文字／圖片 → Skill 提示詞</small></button>
+  <button type="button" class="mtab" role="tab" data-main="reverse" aria-selected="false">🔍 逆向工程<small>圖片／文字 → 反推提示詞</small></button>
+</div>
+
+<!-- ================= 技能產生器 ================= -->
+<main id="paneSkill">
+  <div class="col">
+    <section class="card" aria-labelledby="hs1">
+      <h2 id="hs1"><span class="step">1</span>描述你要的技能</h2>
+      <p class="hint">用一句話或一段話說明這個技能要做什麼；可加上參考圖片（例如想要的輸出樣式、商品照、報表截圖）。也可以直接貼上既有的 SKILL.md 轉換成其他平台格式。範例：</p>
+      <div class="chips" id="exampleChips"></div>
+      <textarea id="srcText" aria-label="技能描述" placeholder="例：根據上傳的產品圖片或主題，自動生成 Facebook、IG、Threads 風格的行銷貼文與 Hashtags。"></textarea>
+      <div class="drop" id="skillDrop" tabindex="0" role="button" aria-label="上傳參考圖片"><b>📎 拖曳、點擊或 Ctrl+V 貼上參考圖片</b>（選填，最多 4 張；規則式只會把「需要看圖」寫進技能，AI 產生才會真的看圖）</div>
+      <input type="file" id="skillFile" accept="image/*" multiple hidden>
+      <div class="thumbs" id="skillThumbs"></div>
+      <div class="row">
+        <button class="btn primary" id="btnRule" type="button">⚡ 規則式產生</button>
+        <button class="btn amber" id="btnAi" type="button">🤖 AI 產生（可看圖）</button>
+        <button class="btn ghost" id="btnClear" type="button">清空</button>
+        <span class="status" id="genStatus">規則式免金鑰、內建 15 種技能類型；AI 產生需在 ⚙ 常用設定填入自己的 API 金鑰，失敗會自動改用規則式。</span>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="hs2">
+      <h2 id="hs2"><span class="step">2</span>輸出設定</h2>
+      <div class="opts">
+        <label class="fld"><span>詳細程度</span><select id="optDetail"></select></label>
+        <label class="fld"><span>回覆語言</span><select id="optLang"></select></label>
+        <label class="fld"><span>語氣</span><select id="optTone"></select></label>
+        <label class="fld"><span>name 前綴</span><select id="optPrefix"><option value="user:">user:（如 user:social-post）</option><option value="">無前綴（Claude 官方規格）</option></select></label>
+        <label class="fld"><span>段落標題</span><select id="optHead"><option value="en">英文（Overview／Instructions）</option><option value="zh">中文（概述／步驟）</option></select></label>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="hs4">
+      <h2 id="hs4"><span class="step">4</span>技能內容微調 <span class="aside">修改後右側提示詞即時更新</span></h2>
+      <div class="opts">
+        <label class="fld"><span>name（英文小寫＋連字號）</span><input type="text" id="fName" autocomplete="off"></label>
+        <label class="fld"><span>英文標題</span><input type="text" id="fTitle" autocomplete="off"></label>
+        <label class="fld"><span>中文名稱</span><input type="text" id="fZh" autocomplete="off"></label>
+        <label class="fld wide"><span>description（技能說明，AI 依此判斷何時使用）</span><textarea id="fDesc" rows="2"></textarea></label>
+        <label class="fld wide"><span>Overview（概述）</span><textarea id="fOverview" rows="2"></textarea></label>
+        <label class="fld wide"><span>Instructions（每行一個步驟；以「-」開頭的行是上一步的子項）</span><textarea id="fSteps" rows="7"></textarea></label>
+        <label class="fld wide"><span>輸入資料（每行一項）</span><textarea id="fInputs" rows="3"></textarea></label>
+        <label class="fld wide"><span>輸出格式（每行一項）</span><textarea id="fOutput" rows="3"></textarea></label>
+        <label class="fld wide"><span>注意事項／限制（每行一項）</span><textarea id="fRules" rows="3"></textarea></label>
+        <label class="fld wide"><span>範例（完整模式才會輸出）</span><textarea id="fExample" rows="3"></textarea></label>
+        <label class="fld wide"><span>對話開場白（ChatGPT／Gemini 用，每行一句）</span><textarea id="fStarters" rows="3"></textarea></label>
+      </div>
+    </section>
+  </div>
+
+  <div class="col">
+    <section class="card" aria-labelledby="hs3">
+      <h2 id="hs3"><span class="step">3</span>技能提示詞 <span class="srcbadge" id="srcBadge">尚未產生</span><span class="edited" id="skillEdited" hidden>✎ 已手動修改</span><span class="aside" id="outLen"></span></h2>
+      <div class="tabs" id="platformTabs" role="tablist" aria-label="目標平台"></div>
+      <p class="ptip" id="platformTip"></p>
+      <textarea class="out" id="skillOut" aria-label="技能提示詞（可直接修改）" spellcheck="false"></textarea>
+      <div class="row">
+        <button class="btn primary" id="btnCopy" type="button">📋 一鍵複製</button>
+        <button class="btn ghost" id="btnResetOut" type="button" hidden>↺ 還原自動版</button>
+        <button class="btn ghost" id="btnDownMd" type="button">⬇ 下載 SKILL.md</button>
+        <button class="btn ghost" id="btnDownZip" type="button">⬇ 下載 Claude 技能 ZIP</button>
+        <button class="btn ghost" id="btnSaveJson" type="button">💾 儲存專案</button>
+        <button class="btn ghost" id="btnOpenJson" type="button">📂 開啟專案</button>
+        <button class="btn ghost" id="btnHistory" type="button">🕘 歷史紀錄</button>
+        <input type="file" id="fileJson" accept=".json,application/json" hidden>
+        <span class="status">框內可直接修改後再複製，每個平台分頁的修改各自保留；改動左側欄位或輸出設定會重新產生。</span>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- ================= 逆向工程 ================= -->
+<main id="paneReverse" hidden>
+  <div class="col">
+    <section class="card" aria-labelledby="hr1">
+      <h2 id="hr1"><span class="step">1</span>貼上或上傳素材</h2>
+      <p class="hint">放一張圖片（AI 生成圖、海報、插畫、照片），AI 會分析畫風、構圖、光線、色彩並反推出能重現它的生圖提示詞。也可以貼上一段文字（文章、貼文、文案），反推出能寫出這種內容的提示詞。範例（已附解析結果，免金鑰）：</p>
+      <div class="chips" id="revExampleChips"></div>
+      <div class="drop" id="revDrop" tabindex="0" role="button" aria-label="上傳要反推的圖片"><b>🖼 拖曳、點擊或 Ctrl+V 貼上圖片</b><br>支援 JPG／PNG／WebP，會自動縮小到 1536px 再送出</div>
+      <input type="file" id="revFile" accept="image/*" hidden>
+      <div class="thumbs" id="revThumbs"></div>
+      <label class="fld" style="margin-top:10px"><span>或貼上文字（沒有圖片時，就反推文字的寫作提示詞）</span><textarea id="revText" placeholder="例：貼上一篇你喜歡的貼文，反推出能寫出同樣風格的提示詞"></textarea></label>
+      <div class="opts" style="margin-top:10px">
+        <label class="fld"><span>細節程度</span><select id="revDetail"><option value="short">精簡（約 40 字／40 words）</option><option value="std" selected>標準</option><option value="rich">非常詳細</option></select></label>
+        <label class="fld half"><span>補充要求（選填）</span><input type="text" id="revExtra" autocomplete="off" placeholder="例：保留構圖但改成水彩風、主角換成貓"></label>
+      </div>
+      <div class="row">
+        <button class="btn amber" id="btnRevAi" type="button">🤖 AI 反推提示詞</button>
+        <button class="btn ghost" id="btnRevMeta" type="button" title="不用金鑰：產生一段指令，連同圖片貼到 ChatGPT／Gemini 讓它幫你反推">📝 產生反推指令（免金鑰）</button>
+        <button class="btn ghost" id="btnRevClear" type="button">清空</button>
+        <span class="status" id="revStatus">AI 反推需在 ⚙ 常用設定填入可看圖的模型金鑰（Gemini、OpenAI、Claude、OpenRouter、xAI）；沒有金鑰可按「產生反推指令」複製到任何聊天 AI 使用。</span>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="hr3" id="revElCard" hidden>
+      <h2 id="hr3"><span class="step">3</span>解析細項 <span class="aside">改完按「🔁 依細項重組」</span></h2>
+      <p class="hint" id="revSummary"></p>
+      <div class="elgrid" id="revElements"></div>
+      <div class="row"><button class="btn ghost" id="btnRevRebuild" type="button">🔁 依細項重組提示詞</button></div>
+    </section>
+  </div>
+
+  <div class="col">
+    <section class="card" aria-labelledby="hr2">
+      <h2 id="hr2"><span class="step">2</span>反推提示詞 <span class="srcbadge" id="revBadge">尚未產生</span><span class="edited" id="revEdited" hidden>✎ 已手動修改</span><span class="aside" id="revLen"></span></h2>
+      <div class="tabs" id="revTabs" role="tablist" aria-label="提示詞格式"></div>
+      <p class="ptip" id="revTip"></p>
+      <textarea class="out" id="revOut" aria-label="反推提示詞（可直接修改）" spellcheck="false" placeholder="放入圖片或文字後，按「🤖 AI 反推提示詞」"></textarea>
+      <div class="row">
+        <button class="btn primary" id="btnRevCopy" type="button">📋 一鍵複製</button>
+        <button class="btn ghost" id="btnRevReset" type="button" hidden>↺ 還原 AI 版</button>
+        <button class="btn ghost" id="btnRevDown" type="button">⬇ 下載 .txt</button>
+        <button class="btn ghost" id="btnRevToSkill" type="button" title="把這段提示詞帶到技能產生器，做成可重複使用的技能">🧩 做成技能</button>
+        <span class="status">提示詞可直接在框內修改，每個格式分頁的修改會分別保留。</span>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <img src="https://visitor-badge.laobi.icu/badge?page_id=m255525.skillpromptstudio" alt="訪客次數" height="20">
+  <span>創作者 <a href="manual.html#creator" target="_blank" rel="noopener">Mark Tsai（蔡豐全）</a></span>
+  <button class="linkbtn" type="button" data-open-about>⚠ 使用警語</button>
+  <a href="manual.html" target="_blank" rel="noopener">📖 操作手冊</a>
+</footer>
+
+<!-- ⚙ 常用設定 -->
+<div class="modal" id="settings" role="dialog" aria-modal="true" aria-labelledby="setTitle">
+  <div class="mcard">
+    <h2 id="setTitle">⚙ 常用設定 <button class="xbtn" type="button" data-close="settings" aria-label="關閉">✕</button></h2>
+    <p class="sub">設定只存在這台裝置的瀏覽器。「儲存並套用」會同時改目前畫面上的選項。</p>
+    <div class="sect">預設值</div>
+    <div class="sgrid">
+      <label class="fld"><span>預設平台分頁</span><select id="setPlatform"></select></label>
+      <label class="fld"><span>預設詳細程度</span><select id="setDetail"></select></label>
+      <label class="fld"><span>預設回覆語言</span><select id="setLang"></select></label>
+      <label class="fld"><span>預設 name 前綴</span><select id="setPrefix"><option value="user:">user:</option><option value="">無前綴</option></select></label>
+      <label class="fld"><span>預設段落標題</span><select id="setHead"><option value="en">英文</option><option value="zh">中文</option></select></label>
+      <label class="fld"><span>逆向工程預設格式</span><select id="setRevFmt"></select></label>
+      <label class="fld"><span>外觀</span><select id="setTheme"><option value="system">跟隨系統</option><option value="light">亮色</option><option value="dark">暗色</option></select></label>
+    </div>
+    <div class="sect">AI 語言模型（技能產生、逆向工程共用，自備金鑰 BYOK）</div>
+    <div class="sgrid">
+      <label class="fld"><span>服務商</span><select id="setAiProvider"></select></label>
+      <label class="fld"><span>模型</span><select id="setAiModel"></select></label>
+      <label class="fld" style="grid-column:1/-1"><span>自訂模型名稱（選填，填了就優先使用）</span><input type="text" id="setAiModelCustom" autocomplete="off" placeholder="例：gpt-5-mini、llava"></label>
+      <label class="fld" id="aiBaseWrap" style="grid-column:1/-1" hidden><span>API 網址（OpenAI 相容）</span><input type="text" id="setAiBase" autocomplete="off" placeholder="例：http://localhost:11434/v1"></label>
+      <label class="fld" style="grid-column:1/-1"><span>API 金鑰（只存在本機瀏覽器，直接送到該服務商；本機 Ollama 等可不填）</span><input type="password" id="setAiKey" autocomplete="off" placeholder="貼上你的 API 金鑰"></label>
+    </div>
+    <p class="note" id="visionNote"></p>
+    <div class="row" style="margin-top:4px"><button class="btn ghost" type="button" id="testAi">🔌 測試連線</button><span class="status" id="aiTestStatus" style="flex-basis:auto;flex:1"></span></div>
+    <div class="sfoot">
+      <button class="btn ghost" type="button" id="clearKey">清除金鑰</button>
+      <button class="btn ghost" type="button" id="settingsReset">恢復預設</button>
+      <span style="flex:1"></span>
+      <button class="btn" type="button" id="settingsSave">儲存</button>
+      <button class="btn primary" type="button" id="settingsApply">儲存並套用</button>
+    </div>
+    <div class="sect">關於本工具</div>
+    <div class="about-links">
+      <a class="mini" href="manual.html" target="_blank" rel="noopener">📖 操作手冊</a>
+      <button class="mini" type="button" data-open-about>⚠ 使用警語</button>
+      <button class="mini" type="button" data-open-about="creator">👤 創作者資訊</button>
+      <button class="mini" type="button" data-install>📲 加入主畫面</button>
+    </div>
+    <p class="note" style="display:flex;align-items:center;gap:8px">訪客數 <img src="https://visitor-badge.laobi.icu/badge?page_id=m255525.skillpromptstudio" alt="訪客次數" height="20"></p>
+  </div>
+</div>
+
+<!-- ℹ 關於 -->
+<div class="modal" id="about" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
+  <div class="mcard">
+    <h2 id="aboutTitle">ℹ 關於 AI 技能提示詞工坊 <button class="xbtn" id="aboutClose" type="button" aria-label="關閉">✕</button></h2>
+    <p class="sub">把一段需求描述或圖片，變成能直接貼到 ChatGPT、Gemini、Claude 建立技能的提示詞；也能從圖片或文字反推提示詞。<a href="manual.html" target="_blank" rel="noopener">📖 操作手冊</a></p>
+    <div class="sect">⚠ 使用警語</div>
+    <ul class="warn">
+      <li>本工具只產生<b>文字提示詞</b>，實際效果依各 AI 平台與模型而異，<b>每次結果可能不同</b>，請先測試再正式使用，並自行檢查 AI 產出內容是否正確。</li>
+      <li>使用「AI 產生」或「AI 反推」時，你輸入的文字與圖片會<b>直接送到你填寫金鑰的服務商</b>（Google、OpenAI、Anthropic 等），費用由你的帳號支付；請勿上傳機密資料、個人資料或含他人臉孔的照片。</li>
+      <li>逆向工程反推出的提示詞只用於學習與創作參考；<b>他人作品（圖片、文章）的著作權屬原作者</b>，請勿用反推結果仿冒特定作品或冒用他人風格做商業用途。</li>
+      <li>建立的技能需遵守各平台（OpenAI、Google、Anthropic）的使用政策；不可用於詐騙、冒充他人或產生違法內容。</li>
+      <li>你的文字、設定與金鑰只存在這台裝置的瀏覽器，不會上傳到本站。在公用電腦使用後請按 ⚙「清除金鑰」。</li>
+      <li>僅供教學、課程及個人使用，禁止未經授權公開發布、販售或商業化使用本工具。</li>
+    </ul>
+    <div class="creator-box" id="creatorBox">
+      <p style="margin:0"><strong>創作者：Mark Tsai（蔡豐全）</strong></p>
+      <p style="margin:4px 0">勞動力發展署創業顧問（2017 起）、經濟部 SBIR 海選專案評審委員（2019－2024），長期擔任小型企業人力提升計畫顧問與多項政府計畫業師、評審委員；專長銷售數據分析、AI 工具運用、政府補助計畫申請、創業與跨境電商。</p>
+      <p style="margin:0"><a href="manual.html#creator" target="_blank" rel="noopener">完整經歷與證照</a>｜<a href="mailto:tsaimark@gmail.com">tsaimark@gmail.com</a></p>
+    </div>
+    <div class="sfoot">
+      <span class="note" style="margin:0 auto 0 0;display:flex;align-items:center;gap:6px">訪客數 <img src="https://visitor-badge.laobi.icu/badge?page_id=m255525.skillpromptstudio" alt="訪客次數" height="20"></span>
+      <button class="btn ghost" type="button" data-install>📲 加入主畫面</button>
+      <button class="btn primary" id="aboutOk" type="button">我知道了</button>
+    </div>
+  </div>
+</div>
+
+<!-- 歷史紀錄 -->
+<div class="modal" id="historyModal" role="dialog" aria-modal="true" aria-labelledby="histTitle">
+  <div class="mcard">
+    <h2 id="histTitle">🕘 歷史紀錄 <button class="xbtn" type="button" data-close="historyModal" aria-label="關閉">✕</button></h2>
+    <p class="sub">最近 20 筆（複製、下載或儲存專案時自動記錄），點一下即可載入。</p>
+    <ul class="hlist" id="historyList"></ul>
+  </div>
+</div>
+
+<div id="toast" role="status"></div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+
+<script>
+/* ================= 頂部跑馬燈 — 獨立運作，沿用工作區共用授權伺服器的公告內容 ================= */
+(function () {
+  'use strict';
+  var MARQUEE_CHECK_URL = "https://script.google.com/macros/s/AKfycbwKX0DNNbY8y4nf90BFTHtxgfqJcHHcZasRrgycl4QAe52_hkjMWSkYk4xOsqU-JPCROw/exec";
+  var STORAGE_KEY = 'skillPromptMarquee';
+  var REFRESH_MS = 20 * 60 * 1000;
+
+  var bar = document.getElementById('marqueeBar');
+  var track = document.getElementById('marqueeTrack');
+  var lastKey = null;
+
+  function loadCache() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch (e) { return []; }
+  }
+  function saveCache(items) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); } catch (e) {}
+  }
+  function appendParsedText(container, text) {
+    var re = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+    var lastIndex = 0, m;
+    while ((m = re.exec(text))) {
+      if (m.index > lastIndex) container.appendChild(document.createTextNode(text.slice(lastIndex, m.index)));
+      var a = document.createElement('a');
+      a.href = m[2]; a.textContent = m[1]; a.target = '_blank'; a.rel = 'noopener noreferrer';
+      a.style.color = 'inherit'; a.style.textDecoration = 'underline';
+      container.appendChild(a);
+      lastIndex = re.lastIndex;
+    }
+    if (lastIndex < text.length) container.appendChild(document.createTextNode(text.slice(lastIndex)));
+  }
+  function buildTrackContent(items) {
+    var frag = document.createDocumentFragment();
+    function appendPass() {
+      items.forEach(function (item, idx) {
+        if (idx > 0) frag.appendChild(document.createTextNode('　★　'));
+        appendParsedText(frag, item);
+      });
+    }
+    appendPass();
+    frag.appendChild(document.createTextNode('　★　'));
+    appendPass();
+    return frag;
+  }
+  function render(items) {
+    if (!items || !items.length) return;
+    var key = JSON.stringify(items);
+    if (key === lastKey) return;
+    lastKey = key;
+    track.innerHTML = '';
+    track.appendChild(buildTrackContent(items));
+    bar.classList.add('show');
+    document.body.classList.add('has-marquee');
+    var width = track.scrollWidth / 2;
+    track.style.animationDuration = Math.max(width / 80, 10) + 's';
+  }
+  function fetchMarquee() {
+    fetch(MARQUEE_CHECK_URL, { method: 'POST', body: JSON.stringify({ serial: '' }) })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data && Array.isArray(data.marquee) && data.marquee.length) {
+          saveCache(data.marquee);
+          render(data.marquee);
+        }
+      })
+      .catch(function () {});
+  }
+
+  render(loadCache());
+  fetchMarquee();
+  setInterval(fetchMarquee, REFRESH_MS);
+})();
+</script>
+<script>
+/* ================= 加入主畫面（PWA） ================= */
+(function () {
+  'use strict';
+  var deferredPrompt = null;
+  var btn = document.getElementById('installBtn');
+
+  var ua = navigator.userAgent || '';
+  var isIOSDevice = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var isMacDesktop = /Macintosh/.test(ua) && !isIOSDevice;
+  var isSafariEngine = /^((?!chrome|crios|fxios|edgios|android).)*safari/i.test(ua);
+  var isStandalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+
+  function fallbackMessage() {
+    if (isIOSDevice) return '請點畫面上的「分享」圖示，選「加入主畫面」';
+    if (isMacDesktop && isSafariEngine) return '請用選單列「檔案」→「加入 Dock」（Safari 17 以上）';
+    return '瀏覽器不支援，或已安裝過';
+  }
+
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    deferredPrompt = e;
+  });
+  window.addEventListener('appinstalled', function () {
+    deferredPrompt = null;
+  });
+
+  if (btn) {
+    if (isStandalone) {
+      btn.style.display = 'none';
+    } else {
+      btn.addEventListener('click', function () {
+        if (!deferredPrompt) {
+          window.alert(fallbackMessage());
+          return;
+        }
+        try {
+          deferredPrompt.prompt();
+          deferredPrompt.userChoice.then(function () { deferredPrompt = null; });
+        } catch (err) {
+          window.alert(fallbackMessage());
+        }
+      });
+    }
+  }
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('service-worker.js').catch(function () {});
+    });
+  }
+})();
+</script>
+</body>
+</html>

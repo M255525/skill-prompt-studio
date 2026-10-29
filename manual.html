@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI 技能提示詞工坊操作手冊</title>
+<link rel="icon" href="icons/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4f2fb;--card:#fff;--ink:#1d1a2e;--ink2:#55516a;--line:#d9d4ee;--accent:#5b4bdb;--accent2:#f0a020;--soft:#ebe7fa}
+@media (prefers-color-scheme: dark){:root{--bg:#13111c;--card:#1b1828;--ink:#eeeaf9;--ink2:#aaa4c2;--line:#353049;--accent:#8b7dff;--soft:#1d1a2b}}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Noto Sans TC",system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.8}
+header{background:#5b4bdb;color:#fff;padding:22px 16px}
+header h1{margin:0 auto;max-width:860px;font-size:clamp(22px,4vw,30px);font-weight:900}
+header p{margin:4px auto 0;max-width:860px}
+header a{color:#fff;font-weight:700}
+main{max-width:860px;margin:0 auto;padding:18px 16px 40px}
+nav.toc,section{background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:8px 18px 12px;margin-bottom:16px}
+nav.toc ol{margin:4px 0;padding-left:22px}
+h2{font-size:20px;font-weight:900;border-bottom:3px solid var(--accent2);display:inline-block;margin:12px 0 4px}
+h3{font-size:16px;margin:12px 0 2px}
+a{color:var(--accent)}
+table{border-collapse:collapse;width:100%;font-size:14px;display:block;overflow-x:auto}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+pre{background:var(--soft);padding:10px 12px;border-radius:8px;overflow-x:auto;font-size:13px;line-height:1.6}
+.warn{border-left:5px solid var(--accent2);background:var(--soft);padding:8px 12px;border-radius:0 8px 8px 0}
+code{background:var(--soft);padding:1px 5px;border-radius:5px}
+</style>
+</head>
+<body>
+<header>
+  <h1>📖 AI 技能提示詞工坊 操作手冊</h1>
+  <p><a href="index.html">← 回到工具</a></p>
+</header>
+<main>
+<nav class="toc"><b>目錄</b>
+<ol>
+  <li><a href="#what">這是什麼工具</a></li>
+  <li><a href="#skill">🧩 技能產生器：四個步驟</a></li>
+  <li><a href="#platforms">四種平台格式與貼到哪裡</a></li>
+  <li><a href="#reverse">🔍 逆向工程</a></li>
+  <li><a href="#ai">串接 AI 語言模型（BYOK）</a></li>
+  <li><a href="#tips">讓技能更好用的技巧</a></li>
+  <li><a href="#prefs">⚙ 常用設定與存檔</a></li>
+  <li><a href="#warn">使用警語</a></li>
+  <li><a href="#creator">創作者</a></li>
+</ol></nav>
+
+<section id="what">
+<h2>1. 這是什麼工具</h2>
+<p>「技能（Skill）」是一段寫好的指示，讓 AI 每次都用同樣的流程與格式完成某件工作。本工具把你的一句需求描述（或一張參考圖片）變成完整的技能提示詞，複製後貼到 Claude、ChatGPT（自訂 GPT）、Gemini（Gem）就能建立技能。另外的「🔍 逆向工程」分頁，可以從一張圖或一段文字反推出能做出它的提示詞。</p>
+<p>產出的 SKILL.md 長這樣：</p>
+<pre>---
+name: user:social-post
+description: 根據上傳的產品圖片或主題，自動生成符合指定社群平台風格的行銷貼文與 Hashtags。
+---
+
+# Social Post Generator
+
+## Overview
+這個技能協助使用者將產品圖片或核心賣點轉化為吸引人的社群行銷貼文。
+
+## Instructions
+1. 分析使用者上傳的圖片或產品主題。
+2. 根據使用者指定的社群平台風格調整語氣：
+   - **IG / Threads**：親切、活潑、多用表情符號與 Hashtags。
+   - **Facebook**：專業、結構清晰、適合詳細介紹與引導點擊。
+3. 結構應包含：吸睛標題、內文重點、行動呼籲（CTA）及標籤（Hashtags）。</pre>
+</section>
+
+<section id="skill">
+<h2>2. 🧩 技能產生器：四個步驟</h2>
+<ol>
+  <li><b>描述你要的技能</b>：一句話說明要做什麼（可點 12 個範例）。可以拖曳、點擊或 <b>Ctrl+V 貼上</b>最多 4 張參考圖片，例如想要的輸出樣式、要處理的單據照片。</li>
+  <li><b>輸出設定</b>：詳細程度（精簡＝像上面的範例；標準＝再加輸出格式與注意事項；完整＝再加輸入資料與範例）、回覆語言、語氣、name 前綴（<code>user:</code> 或無）、段落標題用英文或中文。</li>
+  <li><b>技能提示詞</b>：按「⚡ 規則式產生」（免金鑰，內建 15 種技能類型）或「🤖 AI 產生」（需自備金鑰，會真的看圖）。右側切換平台分頁，框內可直接修改，按「📋 一鍵複製」。</li>
+  <li><b>技能內容微調</b>：name、標題、description、步驟、輸出格式、注意事項、範例、對話開場白都能改，右側即時更新。步驟欄位每行一步，以「-」開頭的行會變成上一步的子項。</li>
+</ol>
+<p><b>已經有 SKILL.md？</b>直接貼進第 1 步的文字框按「規則式產生」，會自動解析，再切到 ChatGPT／Gemini 分頁就能轉成對應格式。</p>
+<p>規則式會依關鍵字判斷技能類型：社群貼文、商品文案、Email 回覆、會議紀錄、翻譯潤稿、簡報大綱、課程教案、單據擷取、短影音腳本、程式碼審查、資料分析、履歷求職、企劃提案、圖片解讀，其餘歸為「自訂 AI 助手」。提到 IG、Facebook、Threads、LINE、小紅書、LinkedIn、YouTube、TikTok 會自動加上各平台的語氣說明；提到圖片或有上傳圖片時，會加入「先觀察圖片」的步驟。</p>
+</section>
+
+<section id="platforms">
+<h2>3. 四種平台格式與貼到哪裡</h2>
+<table>
+<tr><th>分頁</th><th>格式</th><th>貼到哪裡</th></tr>
+<tr><td>SKILL.md（Claude／通用）</td><td>YAML 開頭（name、description）＋ Markdown</td><td>按「⬇ 下載 Claude 技能 ZIP」，到 claude.ai「設定 → 功能 → 技能」上傳；Claude Code 放到 <code>~/.claude/skills/名稱/SKILL.md</code>。ChatGPT、Gemini 也可以整段貼到指示欄位。</td></tr>
+<tr><td>ChatGPT 自訂 GPT</td><td>名稱／說明／指示／對話啟動器</td><td>ChatGPT「探索 GPT → 建立 → 設定」各欄位；或「專案 → 指示」。</td></tr>
+<tr><td>Gemini Gem</td><td>角色、任務、背景、步驟、格式、限制</td><td>Gemini「Gem 管理工具 → 新增 Gem」的「指示」欄位。</td></tr>
+<tr><td>通用系統提示詞</td><td>一段完整的系統指令</td><td>Copilot、Grok、DeepSeek、Perplexity 的自訂指令，或直接當對話第一句送出。</td></tr>
+</table>
+<p>name 前綴：選「user:」會輸出 <code>name: user:social-post</code>；Claude 官方規格的 name 只允許英文小寫、數字與連字號，若上傳 Claude 時出現格式錯誤，請改選「無前綴」。各平台介面名稱可能隨改版調整。</p>
+</section>
+
+<section id="reverse">
+<h2>4. 🔍 逆向工程</h2>
+<p>看到一張喜歡的圖或一篇寫得好的貼文，想知道「要怎麼下提示詞才做得出來」，就用這個分頁。</p>
+<ol>
+  <li><b>放入素材</b>：拖曳、點擊上傳，或直接 <b>Ctrl+V 貼上</b>截圖；也可以貼上一段文字（沒有圖片時就反推文字的寫作提示詞）。</li>
+  <li><b>選細節程度</b>，需要時填「補充要求」（例如「保留構圖但改成水彩風」）。</li>
+  <li>按「🤖 AI 反推提示詞」。圖片會得到四種格式：通用中英對照、Gemini／ChatGPT 生圖、Midjourney（自動依原圖算 <code>--ar</code> 比例）、Stable Diffusion／Flux（標籤＋負面提示詞＋建議尺寸）。文字會得到中文、英文與結構化三種格式，主題相關內容會變成【變數】方便重複使用。</li>
+  <li><b>修改與複製</b>：提示詞框可直接修改（每個格式分頁各自保留），按「📋 一鍵複製」。也可以改左下「解析細項」（主體、畫風、構圖、光線…）後按「🔁 依細項重組」。</li>
+  <li>「🧩 做成技能」會把反推結果帶到技能產生器，做成「以後都產出這種風格」的技能。</li>
+</ol>
+<p><b>沒有金鑰？</b>按「📝 產生反推指令」，複製這段指令貼到 ChatGPT 或 Gemini，並附上同一張圖片，一樣能得到反推提示詞。</p>
+</section>
+
+<section id="ai">
+<h2>5. 串接 AI 語言模型（BYOK）</h2>
+<p>在 ⚙ 常用設定選服務商、模型並貼上自己的 API 金鑰（自備金鑰 BYOK），技能產生與逆向工程共用。</p>
+<table>
+<tr><th>服務商</th><th>看圖</th><th>取得金鑰</th></tr>
+<tr><td>Gemini（Google AI Studio）</td><td>✓</td><td>aistudio.google.com → Get API key（有免費額度）</td></tr>
+<tr><td>OpenAI</td><td>✓</td><td>platform.openai.com → API keys</td></tr>
+<tr><td>Claude（Anthropic）</td><td>✓</td><td>console.anthropic.com → API Keys</td></tr>
+<tr><td>OpenRouter</td><td>✓（依模型）</td><td>openrouter.ai → Keys，一把金鑰用多家模型</td></tr>
+<tr><td>xAI Grok</td><td>✓（Grok 4）</td><td>console.x.ai</td></tr>
+<tr><td>DeepSeek</td><td>✕ 只支援文字</td><td>platform.deepseek.com</td></tr>
+<tr><td>自訂（OpenAI 相容）</td><td>依模型</td><td>本機 Ollama、LM Studio 等，填 API 網址（填到 /v1 即可），可不填金鑰</td></tr>
+</table>
+<ul>
+  <li>可另填「自訂模型名稱」使用新推出的模型；按「🔌 測試連線」確認接得通。</li>
+  <li>金鑰只存在你的瀏覽器，直接送到該服務商，不經過本站；費用由你的帳號支付。</li>
+  <li>部分服務可能不允許瀏覽器直接呼叫（CORS），測試連線會提示。</li>
+  <li>圖片會先縮小到最長邊 1536px 再送出，節省流量與費用。</li>
+</ul>
+</section>
+
+<section id="tips">
+<h2>6. 讓技能更好用的技巧</h2>
+<ul>
+  <li>description 要寫清楚「做什麼」和「什麼時候用」，AI 才知道何時啟用這個技能。</li>
+  <li>步驟寫成動作（分析、整理、列出、檢查），每步一件事。</li>
+  <li>把輸出格式寫死（標題、表格欄位、字數），每次結果才會一致。</li>
+  <li>在注意事項寫上「資訊不足先提問」「不編造數據」等限制，可以減少 AI 亂寫。</li>
+  <li>建立後實際測試 2～3 次，回到第 4 步微調再更新。</li>
+</ul>
+</section>
+
+<section id="prefs">
+<h2>7. ⚙ 常用設定與存檔</h2>
+<ul>
+  <li><b>常用設定</b>：預設平台分頁、詳細程度、回覆語言、name 前綴、段落標題、逆向工程預設格式、外觀（亮／暗）、AI 服務商／模型／金鑰。「儲存」只存起來，「儲存並套用」同時改目前畫面。</li>
+  <li><b>儲存專案</b>下載 .json，可用「開啟專案」還原；<b>歷史紀錄</b>保留最近 20 筆（技能與逆向工程都有，圖片不存）；技能描述與內容會自動暫存。</li>
+  <li><b>加入主畫面</b>：按「📲 安裝」，即可像 App 一樣從桌面或手機主畫面開啟。</li>
+</ul>
+</section>
+
+<section id="warn">
+<h2>8. 使用警語</h2>
+<div class="warn">
+<ul>
+  <li>本工具只產生文字提示詞，實際效果依各 AI 平台與模型而異，請先測試再正式使用，並自行檢查 AI 產出內容。</li>
+  <li>使用 AI 功能時，文字與圖片會直接送到你填寫金鑰的服務商，費用由你的帳號支付；請勿上傳機密、個資或含他人臉孔的照片。</li>
+  <li>逆向工程結果僅供學習與創作參考；他人作品的著作權屬原作者，請勿用來仿冒特定作品或做商業用途。</li>
+  <li>建立的技能需遵守各平台使用政策，不可用於詐騙、冒充他人或產生違法內容。</li>
+  <li>僅供教學、課程及個人使用，禁止未經授權公開發布、販售或商業化使用本工具。</li>
+</ul>
+</div>
+</section>
+
+<section id="creator">
+<h2>9. 創作者</h2>
+<p><b>Mark Tsai（蔡豐全）</b>：勞動力發展署創業顧問（2017 起）、經濟部 SBIR 海選專案評審委員（2019－2024），長期擔任小型企業人力提升計畫顧問與多項政府計畫業師、評審委員；專長銷售數據分析、AI 工具運用、政府補助計畫申請、創業與跨境電商。聯絡：<a href="mailto:tsaimark@gmail.com">tsaimark@gmail.com</a></p>
+</section>
+</main>
+</body>
+</html>

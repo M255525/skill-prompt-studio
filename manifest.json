@@ -1,0 +1,16 @@
+{
+  "name": "AI 技能提示詞工坊",
+  "short_name": "技能提示詞",
+  "description": "輸入文字或圖片，產出可建立 ChatGPT、Gemini、Claude 技能的提示詞；也能從圖片反推提示詞。",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f2fb",
+  "theme_color": "#5b4bdb",
+  "lang": "zh-TW",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

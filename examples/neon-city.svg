@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200">
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0d0221"/><stop offset=".6" stop-color="#3a0b5c"/><stop offset="1" stop-color="#7b1e7a"/></linearGradient>
+<linearGradient id="sun" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffde59"/><stop offset="1" stop-color="#ff2e88"/></linearGradient>
+<clipPath id="c"><circle cx="600" cy="520" r="260"/></clipPath>
+</defs>
+<rect width="1200" height="1200" fill="url(#bg)"/>
+<g fill="#fff" opacity=".7"><circle cx="150" cy="140" r="3"/><circle cx="320" cy="90" r="2"/><circle cx="980" cy="160" r="3"/><circle cx="1080" cy="300" r="2"/><circle cx="240" cy="330" r="2"/><circle cx="860" cy="70" r="2"/></g>
+<g clip-path="url(#c)"><rect x="300" y="250" width="600" height="540" fill="url(#sun)"/>
+<g fill="#3a0b5c"><rect x="300" y="560" width="600" height="14"/><rect x="300" y="610" width="600" height="20"/><rect x="300" y="665" width="600" height="26"/><rect x="300" y="725" width="600" height="34"/></g></g>
+<g fill="#160532"><rect x="80" y="560" width="110" height="220"/><rect x="200" y="480" width="80" height="300"/><rect x="290" y="600" width="120" height="180"/><rect x="800" y="590" width="120" height="190"/><rect x="930" y="470" width="90" height="310"/><rect x="1030" y="540" width="110" height="240"/></g>
+<g fill="#00f0ff" opacity=".8"><rect x="215" y="510" width="12" height="12"/><rect x="250" y="560" width="12" height="12"/><rect x="950" y="500" width="12" height="12"/><rect x="985" y="580" width="12" height="12"/><rect x="100" y="600" width="12" height="12"/></g>
+<rect y="780" width="1200" height="420" fill="#120326"/>
+<g stroke="#ff2e88" stroke-width="3" opacity=".9">
+<line x1="0" y1="780" x2="1200" y2="780"/><line x1="0" y1="820" x2="1200" y2="820"/><line x1="0" y1="875" x2="1200" y2="875"/><line x1="0" y1="950" x2="1200" y2="950"/><line x1="0" y1="1050" x2="1200" y2="1050"/><line x1="0" y1="1180" x2="1200" y2="1180"/>
+<line x1="600" y1="780" x2="600" y2="1200"/><line x1="520" y1="780" x2="280" y2="1200"/><line x1="680" y1="780" x2="920" y2="1200"/><line x1="440" y1="780" x2="-40" y2="1200"/><line x1="760" y1="780" x2="1240" y2="1200"/><line x1="360" y1="780" x2="-360" y2="1200"/><line x1="840" y1="780" x2="1560" y2="1200"/>
+</g>
+</svg>
