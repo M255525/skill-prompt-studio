@@ -6,6 +6,7 @@
  * 使用人數限制：表頭有「人數限制」欄且該列有填數字，就限制「同一時間最多幾個瀏覽器在線」；
  * 名額記在「已登入裝置」欄（clientId:時間戳|...），逾時 SESSION_TIMEOUT_MS 自動釋出；
  * 前端每 20 分鐘背景重驗續命，關閉分頁時用 sendBeacon 送 release:true 盡力立即釋出。
+ * 人數限制只在「登入當下」把關：已經登入的瀏覽器背景重驗時會帶 renew:true，即使名額已滿（例如它的名額逾時被別人補上）也不會被踢出。
  * 若表頭有「目前登入人數」欄，每次驗證／釋出都會把目前在線人數寫進去，方便在試算表上直接看。
  */
 
@@ -29,13 +30,14 @@ function doPost(e) {
     const serial = String(payload.serial || "").trim();
     const sheetName = String(payload.sheet || "").trim(); // 選填：指定要查哪個分頁（例如登入序號查「前門」），留空維持既有行為
     const clientId = String(payload.clientId || "").trim(); // 選填：這個瀏覽器的識別碼，用於人數限制的重複登入判斷
+    const renew = payload.renew === true; // 已登入者的背景重驗：只續命、不受人數上限阻擋
 
     if (payload.release) {
       // 關閉分頁時的「盡力釋出名額」通知（navigator.sendBeacon 送出，不等回應內容）
       releaseSession_(serial, sheetName, clientId);
       result = { ok: true };
     } else {
-      result = serial ? checkOrActivate(serial, sheetName, clientId) : { valid: false, reason: "missing_serial" };
+      result = serial ? checkOrActivate(serial, sheetName, clientId, renew) : { valid: false, reason: "missing_serial" };
     }
   } catch (err) {
     result = { valid: false, reason: "server_error", message: String(err) };
@@ -111,7 +113,7 @@ function releaseSession_(serial, sheetName, clientId) {
   }
 }
 
-function checkOrActivate(serial, sheetName, clientId) {
+function checkOrActivate(serial, sheetName, clientId, renew) {
   // LockService 避免多人同時第一次驗證同一組序號時，開卡時間被寫兩次、算出不同的到期日；
   // 同一把鎖也保護人數限制的「讀取目前在線名單→判斷→寫回」這段不會被同時進來的請求互相蓋掉。
   const lock = LockService.getScriptLock();
@@ -185,7 +187,7 @@ function checkOrActivate(serial, sheetName, clientId) {
         if (existingIdx >= 0) {
           // 這個瀏覽器本來就在名額內，只是延續它的在線時間，不會多佔一個名額
           activeEntries[existingIdx].ts = now.getTime();
-        } else if (activeEntries.length >= limitNum) {
+        } else if (activeEntries.length >= limitNum && !renew) {
           // 已達上限：仍然把「濾掉逾時名額後」的結果寫回去（可能比原本存的少幾筆），但不把這個新裝置加進去
           sheet.getRange(sheetRow, colDevices + 1).setValue(serializeDeviceEntries_(activeEntries));
           writeActiveCount_(sheet, header, sheetRow, activeEntries.length);
@@ -198,6 +200,7 @@ function checkOrActivate(serial, sheetName, clientId) {
             headcountRemaining: 0
           });
         } else if (clientId) {
+          // 新登入（名額未滿），或已登入者重驗時名額已逾時被清掉——後者即使超過上限也補回去，人數限制只在登入當下把關
           activeEntries.push({ id: clientId, ts: now.getTime() });
         }
         sheet.getRange(sheetRow, colDevices + 1).setValue(serializeDeviceEntries_(activeEntries));

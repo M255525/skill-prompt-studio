@@ -486,7 +486,7 @@ body:has(#entryGate:not(.hidden)){overflow:hidden}
     var used = limited ? (license.headcountUsed || 0) : 0;
     var cls = 'lic ' + (unlimited || remaining > 0 ? 'ok' : 'bad');
     var full = !license ? '' : unlimited ? '👥 此序號不限登入人數'
-      : limited ? '👥 此序號還可登入 ' + remaining + ' 人（上限 ' + license.headcountLimit + ' 人，目前 ' + used + ' 人在線）' : '';
+      : limited ? '👥 此序號還可登入 ' + remaining + ' 人（同時登入上限 ' + license.headcountLimit + ' 人，目前 ' + used + ' 人已登入）' : '';
     if (headcountBadge) {
       headcountBadge.style.display = full ? '' : 'none';
       headcountBadge.className = cls; headcountBadge.textContent = full;
@@ -495,17 +495,18 @@ body:has(#entryGate:not(.hidden)){overflow:hidden}
       headcountChip.style.display = full ? '' : 'none';
       headcountChip.className = cls;
       headcountChip.textContent = unlimited ? '👥 不限人數' : limited ? '👥 還可登入 ' + remaining + '/' + license.headcountLimit : '';
-      headcountChip.title = full.replace('👥 ', '') + (limited ? '；每 20 分鐘或開啟 ⚙ 常用設定時更新，離線 40 分鐘自動釋出名額' : '');
+      headcountChip.title = full.replace('👥 ', '') + (limited ? '；每 20 分鐘或開啟 ⚙ 常用設定時更新，上限只在登入當下把關，已登入者不會被踢出；關閉分頁或 40 分鐘沒動靜即釋出名額' : '');
     }
     if (gateHeadcount) gateHeadcount.textContent = full;
   }
 
   // GAS Web App 不回應 OPTIONS 預檢，所以不設 Content-Type（維持簡單請求）
-  function checkLicense(serial, attempt) {
+  // renew＝已登入者的背景重驗：人數限制只在登入當下把關，重驗不會因名額已滿被踢出
+  function checkLicense(serial, attempt, renew) {
     attempt = attempt || 1;
     return fetch(LICENSE_CHECK_URL, {
       method: 'POST',
-      body: JSON.stringify({ serial: serial, clientId: getClientId() }),
+      body: JSON.stringify({ serial: serial, clientId: getClientId(), renew: !!renew }),
       signal: AbortSignal.timeout(20000)
     }).catch(function (err) {
       throw new Error(err.name === 'TimeoutError' ? '授權伺服器回應時間較長，請稍候片刻後再試一次' : REASON_LABEL.network_error);
@@ -516,7 +517,7 @@ body:has(#entryGate:not(.hidden)){overflow:hidden}
       var parsed;
       try { parsed = JSON.parse(text); } catch (e) { parsed = null; }
       if (!parsed || typeof parsed.valid !== 'boolean') {
-        if (attempt < 3) return checkLicense(serial, attempt + 1);
+        if (attempt < 3) return checkLicense(serial, attempt + 1, renew);
         throw new Error('授權伺服器回應異常，請稍後再試一次');
       }
       return parsed;
@@ -544,7 +545,7 @@ body:has(#entryGate:not(.hidden)){overflow:hidden}
     opts = opts || {};
     if (!serial) { setStatus('bad', REASON_LABEL.missing_serial); return Promise.resolve({ valid: false }); }
     if (!opts.silent) setStatus('', '驗證中…');
-    return checkLicense(serial).then(function (license) {
+    return checkLicense(serial, 1, opts.renew).then(function (license) {
       if (license.valid) unlock(license);
       else lock(REASON_LABEL[license.reason] || license.message || '授權序號驗證失敗', license);
       return license;
@@ -586,7 +587,7 @@ body:has(#entryGate:not(.hidden)){overflow:hidden}
   var settingsBtn = document.getElementById('settingsBtn');
   if (settingsBtn) settingsBtn.addEventListener('click', function () {
     var serial = loadSerial();
-    if (serial && gate.classList.contains('hidden')) runCheck(serial, { silent: true });
+    if (serial && gate.classList.contains('hidden')) runCheck(serial, { silent: true, renew: true });
   });
 
   input.value = loadSerial();
@@ -595,7 +596,7 @@ body:has(#entryGate:not(.hidden)){overflow:hidden}
 
   setInterval(function () {
     var serial = loadSerial();
-    if (serial) runCheck(serial, { silent: true });
+    if (serial) runCheck(serial, { silent: true, renew: gate.classList.contains('hidden') });
   }, RECHECK_MS);
 
   // 關閉分頁時盡力釋出人數名額；送不出去也沒關係，後端有 40 分鐘逾時兜底
