@@ -167,6 +167,9 @@ body:has(#entryGate:not(.hidden)){overflow:hidden}
 .lic{display:inline-block;font-size:12.5px;font-weight:700;padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:var(--ink2);background:var(--bg2)}
 .lic.ok{color:var(--ok);border-color:var(--ok)}
 .lic.bad{color:var(--warn);border-color:var(--warn)}
+#headcountChip{align-self:center;cursor:default}
+#entryGateHeadcount{display:block;margin-top:10px;font-size:12.5px;color:var(--ink2)}
+#entryGateHeadcount:empty{display:none}
 </style>
 </head>
 <body>
@@ -181,6 +184,7 @@ body:has(#entryGate:not(.hidden)){overflow:hidden}
     </div>
     <button type="button" class="btn primary" id="btnEntryGateConfirm" style="width:100%;margin-bottom:12px">確認</button>
     <span id="entryGateStatus" class="lic" role="status">尚未驗證</span>
+    <span id="entryGateHeadcount" aria-live="polite"></span>
     <p class="gate-foot">沒有序號？請洽 <a href="mailto:tsaimark@gmail.com">tsaimark@gmail.com</a>｜<a href="manual.html" target="_blank" rel="noopener">📖 操作手冊</a></p>
   </div>
 </div>
@@ -195,6 +199,7 @@ body:has(#entryGate:not(.hidden)){overflow:hidden}
     </div>
   </div>
   <nav class="tools" aria-label="工具列">
+    <span id="headcountChip" class="lic" style="display:none" role="status"></span>
     <a class="tbtn" href="manual.html" target="_blank" rel="noopener">📖<span class="tx"> 操作手冊</span></a>
     <button class="tbtn" id="aboutBtn" type="button" aria-haspopup="dialog">ℹ<span class="tx"> 關於</span></button>
     <button class="tbtn" id="settingsBtn" type="button" aria-haspopup="dialog">⚙<span class="tx"> 常用設定</span></button>
@@ -437,6 +442,8 @@ body:has(#entryGate:not(.hidden)){overflow:hidden}
   var statusEl = document.getElementById('entryGateStatus');
   var licBadge = document.getElementById('licBadge');
   var headcountBadge = document.getElementById('headcountBadge');
+  var headcountChip = document.getElementById('headcountChip');
+  var gateHeadcount = document.getElementById('entryGateHeadcount');
   var logoutBtn = document.getElementById('btnLogout');
   if (!gate || !input || !confirmBtn || !statusEl) return;
 
@@ -470,16 +477,27 @@ body:has(#entryGate:not(.hidden)){overflow:hidden}
     statusEl.className = 'lic ' + cls; statusEl.textContent = text;
     if (licBadge) { licBadge.className = 'lic ' + cls; licBadge.textContent = text; }
   }
+  // 顯示「這組序號目前還可以登入的人數」：頂部工具列小標籤、⚙ 常用設定、登入畫面（含已達上限時）三處同步；
+  // 試算表該列沒填「人數限制」就顯示不限人數；沒有驗證結果（登出、連線失敗）則全部隱藏
   function updateHeadcountBadge(license) {
-    if (!headcountBadge) return;
-    if (license && typeof license.headcountLimit === 'number') {
-      var remaining = Math.max(license.headcountRemaining || 0, 0);
-      headcountBadge.style.display = '';
-      headcountBadge.className = 'lic ' + (remaining > 0 ? 'ok' : 'bad');
-      headcountBadge.textContent = '👥 剩餘可登入人數：' + remaining + '/' + license.headcountLimit;
-    } else {
-      headcountBadge.style.display = 'none';
+    var limited = license && typeof license.headcountLimit === 'number';
+    var unlimited = license && license.valid && !limited;
+    var remaining = limited ? Math.max(license.headcountRemaining || 0, 0) : 0;
+    var used = limited ? (license.headcountUsed || 0) : 0;
+    var cls = 'lic ' + (unlimited || remaining > 0 ? 'ok' : 'bad');
+    var full = !license ? '' : unlimited ? '👥 此序號不限登入人數'
+      : limited ? '👥 此序號還可登入 ' + remaining + ' 人（上限 ' + license.headcountLimit + ' 人，目前 ' + used + ' 人在線）' : '';
+    if (headcountBadge) {
+      headcountBadge.style.display = full ? '' : 'none';
+      headcountBadge.className = cls; headcountBadge.textContent = full;
     }
+    if (headcountChip) {
+      headcountChip.style.display = full ? '' : 'none';
+      headcountChip.className = cls;
+      headcountChip.textContent = unlimited ? '👥 不限人數' : limited ? '👥 還可登入 ' + remaining + '/' + license.headcountLimit : '';
+      headcountChip.title = full.replace('👥 ', '') + (limited ? '；每 20 分鐘或開啟 ⚙ 常用設定時更新，離線 40 分鐘自動釋出名額' : '');
+    }
+    if (gateHeadcount) gateHeadcount.textContent = full;
   }
 
   // GAS Web App 不回應 OPTIONS 預檢，所以不設 Content-Type（維持簡單請求）
@@ -515,10 +533,11 @@ body:has(#entryGate:not(.hidden)){overflow:hidden}
     gate.classList.add('hidden');
     updateHeadcountBadge(license);
   }
-  function lock(reasonText) {
+  function lock(reasonText, license) {
     setStatus('bad', '✗ ' + reasonText);
     gate.classList.remove('hidden');
-    updateHeadcountBadge(null);
+    // 只有「已達人數上限」才在登入畫面留著人數資訊，讓使用者知道是名額滿了
+    updateHeadcountBadge(license && license.reason === 'headcount_exceeded' ? license : null);
   }
 
   function runCheck(serial, opts) {
@@ -527,7 +546,7 @@ body:has(#entryGate:not(.hidden)){overflow:hidden}
     if (!opts.silent) setStatus('', '驗證中…');
     return checkLicense(serial).then(function (license) {
       if (license.valid) unlock(license);
-      else lock(REASON_LABEL[license.reason] || license.message || '授權序號驗證失敗');
+      else lock(REASON_LABEL[license.reason] || license.message || '授權序號驗證失敗', license);
       return license;
     }).catch(function (err) {
       lock(err.message);
@@ -561,7 +580,14 @@ body:has(#entryGate:not(.hidden)){overflow:hidden}
     input.focus();
   });
 
-  window.__skillPromptGate = { runCheck: runCheck, unlock: unlock, lock: lock };
+  window.__skillPromptGate = { runCheck: runCheck, unlock: unlock, lock: lock, updateHeadcountBadge: updateHeadcountBadge };
+
+  // 開啟 ⚙ 常用設定時順手重驗一次，讓「還可登入人數」是當下的數字（同一個瀏覽器重驗只續命、不多佔名額）
+  var settingsBtn = document.getElementById('settingsBtn');
+  if (settingsBtn) settingsBtn.addEventListener('click', function () {
+    var serial = loadSerial();
+    if (serial && gate.classList.contains('hidden')) runCheck(serial, { silent: true });
+  });
 
   input.value = loadSerial();
   if (input.value) { setStatus('', '驗證中…'); runCheck(input.value, { silent: true }); }
